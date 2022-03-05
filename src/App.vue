@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, reactive } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import SignInButton from './components/SignInButton.vue';
 import LeafletMap from './components/LeafletMap.vue';
 import Form from './components/Form.vue';
@@ -35,6 +35,16 @@ const polygonData = reactive({
   map: [],
 })
 
+const listData = reactive({
+  list: [],
+})
+
+const placeData = reactive({
+  place: {},
+})
+
+const isInfoCollapse = ref(false)
+
 onMounted(async () => {
   // google sdk init 速度很慢，為避免重複 google 登入，只能等 sdk 完全初始化後再取得 user
   setTimeout(() => {
@@ -53,42 +63,35 @@ const clearUser = function (key) {
   identities[key].user = null;
 }
 
-const emitAddress = function (address) {
-  console.log({ address })
+const emitPlace = function (item) {
+  placeData.place = item
 }
 
 const updateLocation = async function (m) {
-  console.log({ m })
-
+  // list
   let listResponse = await postUrbanRenewalList({
     body: { ...m, function: 'xinbei_distance' }
   })
-  console.log({ body: { ...m, function: 'xinbei_distance' }, listResponse })
+  if (listResponse?.result) {
+    listData.list = listResponse.result
+  }
 
   // polygon
-  let polygonRes = await postUrbanRenewalPolygon({
-    body: { directory: "tucheng.json", function: 'xinbei_json' }
-  })
-  console.log({ body: { directory: "tucheng.json", function: 'xinbei_json' }, polygonRes })
-  // if (polygonRes) {
-  //   polygonData.map = polygonRes.result.features
-  // }
-}
-
-const getApi = async function () {
-  let body = {
-    lat: 25.0111482,
-    lng: 121.5182451,
-    function: 'xinbei_distance'
+  if (!polygonData.map.length) {
+    let polygonRes = await postUrbanRenewalPolygon({
+      body: { directory: "tucheng.json", function: 'xinbei_json' }
+    })
+    if (polygonRes) {
+      polygonData.map = polygonRes.result.features
+    }
   }
-  let response = await postApi({ body })
-  console.log({ response })
 }
 
 </script>
 
 <template>
-  <div class="information">
+  <div :class="['information', 'flex v-center', isInfoCollapse && 'collapse']">
+    <i class="fas fa-caret-left caret-icon" @click="isInfoCollapse = !isInfoCollapse"/>
     <div v-for="(identity, key) in identities" :key="key">
       <span v-if="identity.user?.id"> hi, {{ identity.user.name }} </span>
       <span v-else> 請登入您的 {{ key }} 帳號 </span>
@@ -96,9 +99,10 @@ const getApi = async function () {
     </div>
   </div>
 
-  <LeafletMap :identities="identities" :polygonData="polygonData" @updateLocation="updateLocation" />
-  <Form @emitAddress="emitAddress"/>
-
+  <div class="wrapper flex">
+    <Form :listData="listData" @emitPlace="emitPlace"/>
+    <LeafletMap :identities="identities" :polygonData="polygonData" :placeData="placeData" @updateLocation="updateLocation" />
+  </div>
 </template>
 
 <style>
@@ -108,15 +112,37 @@ const getApi = async function () {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   margin: 0;
+  position: relative;
+  width: 100vw;
 }
 
 .information {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2000;
+  background-color: #f4f4f4;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transform: translateX(calc(100% - 2rem));
+  cursor: default;
+  transition: transform 0.6s;
 }
 
-.information div {
-  margin-bottom: 0.5rem;
+.information.collapse {
+  transform: translateX(0px);
+}
+
+.information span {
+  padding: 0 1rem;
+}
+
+.information .caret-icon {
+  font-size: 2rem;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+.information.collapse .caret-icon {
+  transform: rotate(180deg);
 }
 </style>

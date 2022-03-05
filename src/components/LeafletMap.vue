@@ -10,6 +10,7 @@ let marker = {}
 const props = defineProps({
   identities: Object,
   polygonData: Object,
+  placeData: Object,
 })
 
 // 點擊到的位置經緯度 [lat, lng]
@@ -32,6 +33,15 @@ watch(props.polygonData, () => {
   })
 
   generatePolygon(polygonMap)
+})
+
+watch(props.placeData, () => {
+  let { latitude, longitude, stop_name, distance } = props.placeData.place
+
+  L.popup()
+    .setLatLng([latitude, longitude])
+    .setContent(`地點：${stop_name} (${distance}m)`)
+    .openOn(map);
 })
 
 onMounted(async () => {
@@ -68,12 +78,12 @@ const mapInit = () => {
   }
 
   function onMapClick(e) {
-    console.log(e.latlng)
+    marker.setLatLng(e.latlng)
+    emit('updateLocation', e.latlng)
   }
 }
 
 const generatePolygon = (polygonMap) => {
-  console.log(polygonMap)
   var polygonIns = L.polygon(polygonMap, { color: 'red' }).addTo(map);
 
   // zoom the map to the polygon
@@ -89,7 +99,7 @@ const generatePolygon = (polygonMap) => {
 <style>
 #mapid {
   width: 100%;
-  height: 600px;
+  height: 100vh;
 }
 
 .tl-img {

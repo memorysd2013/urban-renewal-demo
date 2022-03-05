@@ -37,6 +37,7 @@ button {
   transition: all .3s;
   color: #666;
 }
+
 button:hover {
   color: #333;
   transform: translate(-2px);
