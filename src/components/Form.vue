@@ -21,10 +21,6 @@ watch(props.listData, () => {
   filterList.list = props.listData.list
 })
 
-/**
- * 先檢查是否登入 google and facebook
- * 確實登入後才能使用功能
- */
 const emitPlace = function (item) {
   emit('emitPlace', item)
 }
@@ -55,7 +51,7 @@ const filterAddress = function () {
   </div>
 </template>
 
-<style scope>
+<style scoped>
 input {
   padding: 0.375rem;
   font-size: 1.125rem;

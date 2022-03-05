@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import SignInButton from './components/SignInButton.vue';
 import LeafletMap from './components/LeafletMap.vue';
 import Form from './components/Form.vue';
+import InformationBar from './components/InformationBar.vue';
 import { postUrbanRenewalList, postUrbanRenewalPolygon } from './service/api';
 import {
   getGoogleUser,
@@ -12,7 +13,6 @@ import {
   facebookLogin,
   facebookLogout,
 } from './service/public';
-import { all_dist } from './static/district'
 
 const identities = reactive({
   google: {
@@ -43,7 +43,7 @@ const placeData = reactive({
   place: {},
 })
 
-const isInfoCollapse = ref(false)
+const isInfoCollapse = ref(true)
 
 onMounted(async () => {
   // google sdk init 速度很慢，為避免重複 google 登入，只能等 sdk 完全初始化後再取得 user
@@ -64,10 +64,18 @@ const clearUser = function (key) {
 }
 
 const emitPlace = function (item) {
+  if (!identities.google.user || !identities.google.user) {
+    alert('請先登入 Google 與 Facebook 帳號')
+    return
+  }
   placeData.place = item
 }
 
 const updateLocation = async function (m) {
+  if (!identities.google.user || !identities.google.user) {
+    alert('請先登入 Google 與 Facebook 帳號')
+    return
+  }
   // list
   let listResponse = await postUrbanRenewalList({
     body: { ...m, function: 'xinbei_distance' }
@@ -76,7 +84,7 @@ const updateLocation = async function (m) {
     listData.list = listResponse.result
   }
 
-  // polygon
+  // polygon: 因為只有一個地點 所以只會執行一次
   if (!polygonData.map.length) {
     let polygonRes = await postUrbanRenewalPolygon({
       body: { directory: "tucheng.json", function: 'xinbei_json' }
@@ -90,17 +98,14 @@ const updateLocation = async function (m) {
 </script>
 
 <template>
-  <div :class="['information', 'flex v-center', isInfoCollapse && 'collapse']">
-    <i class="fas fa-caret-left caret-icon" @click="isInfoCollapse = !isInfoCollapse"/>
-    <div v-for="(identity, key) in identities" :key="key">
-      <span v-if="identity.user?.id"> hi, {{ identity.user.name }} </span>
-      <span v-else> 請登入您的 {{ key }} 帳號 </span>
-      <SignInButton :identity="identity" :identityKey="key" @setUser="setUser" @clearUser="clearUser" />
-    </div>
+  <div class="infoWrapper">
+    <InformationBar :identities="identities" v-slot:default="slotProps">
+      <SignInButton :identity="slotProps.identity" :identityKey="slotProps.identityKey" @setUser="setUser" @clearUser="clearUser" />
+    </InformationBar>
   </div>
 
   <div class="wrapper flex">
-    <Form :listData="listData" @emitPlace="emitPlace"/>
+    <Form :listData="listData" @emitPlace="emitPlace" />
     <LeafletMap :identities="identities" :polygonData="polygonData" :placeData="placeData" @updateLocation="updateLocation" />
   </div>
 </template>
@@ -116,33 +121,10 @@ const updateLocation = async function (m) {
   width: 100vw;
 }
 
-.information {
+.infoWrapper {
   position: absolute;
   top: 0;
   right: 0;
   z-index: 2000;
-  background-color: #f4f4f4;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transform: translateX(calc(100% - 2rem));
-  cursor: default;
-  transition: transform 0.6s;
-}
-
-.information.collapse {
-  transform: translateX(0px);
-}
-
-.information span {
-  padding: 0 1rem;
-}
-
-.information .caret-icon {
-  font-size: 2rem;
-  cursor: pointer;
-  transition: transform 0.3s;
-}
-.information.collapse .caret-icon {
-  transform: rotate(180deg);
 }
 </style>

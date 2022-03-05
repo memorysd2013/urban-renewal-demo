@@ -25,7 +25,7 @@ const signInOrSignOut = () => {
   </button>
 </template>
 
-<style scope>
+<style scoped>
 button {
   font-size: 1.125rem;
   font-weight: 500;

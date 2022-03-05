@@ -65,7 +65,7 @@ const mapInit = () => {
 
   // init marker
   marker = L.marker(latLng.m, { draggable: true, autoPan: true })
-    .bindTooltip('content')
+    .bindTooltip('please login google & facebook first')
     .openTooltip()
     .addTo(map);
   marker.on('moveend', markerMoveEnd);
