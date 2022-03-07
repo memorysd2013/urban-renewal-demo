@@ -1,14 +1,18 @@
 import { google_client_id, facebook_app_id } from '../static/config'
+import { initGoogleInst } from './public'
 
 /**
  * Google SDK init
  * https://developers.google.com/identity/sign-in/web/reference#gapiauth2initparams
  */
-window.gapi.load('auth2', () => {
-  window.gapi.auth2.init({
-    client_id: google_client_id,
-  })
-});
+setTimeout(() => {
+  window.gapi.load('auth2', async () => {
+    await window.gapi.auth2.init({
+      client_id: google_client_id,
+    })
+    initGoogleInst()
+  });
+}, 0)
 
 /**
  * Facebook SDK init

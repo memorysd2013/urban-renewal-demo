@@ -2,7 +2,11 @@
  * GOOGLE
  *  - note: google sdk 執行的速度會慢很多
  */
-export const googleInst = gapi.auth2.getAuthInstance();
+export let googleInst = null;
+
+export function initGoogleInst() {
+  googleInst = window.gapi.auth2.getAuthInstance();
+}
 
 /**
  * App.vue 初始化完畢時 google sdk 可能還沒回來

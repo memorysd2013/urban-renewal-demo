@@ -23,8 +23,7 @@ const avatars = computed(() => {
 // 登入身份更新時 更新 marker 內容
 watch(props.identities, () => {
   let els = avatars.value.map(url => `<img src="${url}" class="tl-img">`).join('')
-  marker
-    .bindTooltip('Here you are <br/>' + els)
+  setTimeout(() => marker.bindTooltip('Here you are <br/>' + els), 0)  
 })
 
 watch(props.polygonData, () => {

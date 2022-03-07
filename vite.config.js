@@ -13,4 +13,5 @@ export default defineConfig({
       cert: fs.readFileSync(`${__dirname}/src/assets/localhost.pem`),
     },
   },
+  base: '/urban-renewal-demo/',
 })
